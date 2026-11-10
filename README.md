@@ -134,6 +134,17 @@ tailscale serve --bg --https=8443 http://127.0.0.1:8787
 再用 `tailscale serve --bg --https=443 http://127.0.0.1:8081` 暴露跳板，
 App 里填 `https://<机器>.<tailnet>.ts.net/` 即可——**地址永久固定**。
 
+### 让手机连到 Electron 桌面实例
+
+如果你用的是 DSH 桌面客户端，又想让手机连**同一个实例**（而不是另起一个 `dsh web`），
+情况会麻烦一点：桌面实例的鉴权是绑定端口的签名 cookie，token 不落盘也不在渲染进程里。
+
+`tools/electron-bridge/` 里有一套现成的解法（抓 cookie + 反代 + 自愈守护），
+原理和详细步骤见 [docs/electron-bridge.md](docs/electron-bridge.md)。
+
+> 注意：这套方案要求客户端带 `--remote-debugging-port=9222 --inspect=9229` 启动，
+> 且依赖 DSH 内部实现，升级后可能失效。
+
 ## 已知限制
 
 - 纯壳，DSH 必须单独运行
