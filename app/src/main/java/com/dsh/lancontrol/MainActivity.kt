@@ -231,9 +231,15 @@ class MainActivity : Activity() {
         }
     }
 
+    /**
+     * 只比较主机名，忽略端口。
+     *
+     * 稳定地址是 :8444 的跳板，它会 302 到 :8443 的 DSH；
+     * 如果连端口一起比，这个跳转会被判成"外部链接"甩给浏览器。
+     */
     private fun isSameOrigin(target: Uri): Boolean {
         val base = Uri.parse(currentUrl)
-        return target.host == base.host && target.port == base.port
+        return target.host == base.host
     }
 
     private fun openExternally(target: Uri): Boolean = try {
