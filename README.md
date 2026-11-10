@@ -144,6 +144,9 @@ App 里填 `https://<机器>.<tailnet>.ts.net/` 即可——**地址永久固定
 
 > 注意：这套方案要求客户端带 `--remote-debugging-port=9222 --inspect=9229` 启动，
 > 且依赖 DSH 内部实现，升级后可能失效。
+>
+> 另外，`dsh-mobile-shell@0.7.6` 的激活断点写的是 `max-width: 10230px`（等于全尺寸生效），
+> 装进桌面 profile 时要把 `lib/client.js` 里的 `10230px` 改成 `1023px`，否则桌面端也会变成移动布局。
 
 ## 已知限制
 
