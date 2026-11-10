@@ -13,9 +13,11 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
+import android.os.SystemClock
 import android.text.InputType
 import android.util.TypedValue
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.ValueCallback
@@ -47,6 +49,7 @@ class MainActivity : Activity() {
         private const val KEY_LAST_GOOD = "dsh_last_good"
         private const val REQ_FILE = 1001
         private const val EXTRA_OPEN_SETTINGS = "open_settings"
+        private const val LOAD_TIMEOUT_MS = 12000L
 
         private const val BG = "#0B1220"
         private const val FG = "#FFFFFF"
@@ -63,6 +66,10 @@ class MainActivity : Activity() {
 
     private var fileCallback: ValueCallback<Array<Uri>>? = null
     private var currentUrl: String = ""
+    private var isLoaded = false
+    private var lastVolumeDownAt = 0L
+    private val uiHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var loadWatchdog: Runnable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,6 +94,23 @@ class MainActivity : Activity() {
         }
     }
 
+    /**
+     * 双按音量下键打开「连接设置」。
+     * ColorOS 等桌面不展示静态快捷方式，所以留一个不依赖桌面的入口；
+     * 第一次按下正常调音量，800ms 内再按一次才触发。
+     */
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.keyCode == KeyEvent.KEYCODE_VOLUME_DOWN && event.action == KeyEvent.ACTION_DOWN) {
+            val now = SystemClock.elapsedRealtime()
+            if (now - lastVolumeDownAt <= 800) {
+                lastVolumeDownAt = 0
+                showUrlDialog()
+                return true
+            }
+            lastVolumeDownAt = now
+        }
+        return super.dispatchKeyEvent(event)
+    }
     /** 快捷方式与 am start -e 传的都是字符串 extra，所以两种类型都要认 */
     private fun wantsSettings(i: Intent?): Boolean {
         if (i == null) return false
@@ -215,9 +239,21 @@ class MainActivity : Activity() {
 
             override fun onPageFinished(view: WebView, url: String?) {
                 super.onPageFinished(view, url)
-                errorView.visibility = View.GONE
-                webView.visibility = View.VISIBLE
-                url?.let { prefs.edit().putString(KEY_LAST_GOOD, it).apply() }
+                // 判断"真的加载成功"而不是拿到一张错误页：
+                // DSH 的 HTML 一定内联了 window.__DSH_BOOT__，错误页/别的站点都没有。
+                // （Chromium 的错误页不会触发 onReceivedError，也不带稳定 DOM 标记）
+                view.evaluateJavascript(
+                    "(function(){try{return (typeof window.__DSH_BOOT__ !== 'undefined')?'ok':'err'}catch(e){return 'err'}})()"
+                ) { result ->
+                    if (result != null && result.contains("ok")) {
+                        isLoaded = true
+                        errorView.visibility = View.GONE
+                        webView.visibility = View.VISIBLE
+                        url?.let { prefs.edit().putString(KEY_LAST_GOOD, it).apply() }
+                    } else {
+                        // 结果为空或不是 'ok'：交给看门狗判定，不要误判成加载成功
+                    }
+                }
             }
 
             override fun onReceivedError(
@@ -269,9 +305,20 @@ class MainActivity : Activity() {
     }
 
     private fun load(url: String) {
+        android.util.Log.i("DSHX", "load: $url")
         currentUrl = url
+        isLoaded = false
         errorView.visibility = View.GONE
         webView.visibility = View.VISIBLE
+        // 兜底：被 WebView 拦截的地址（ERR_UNSAFE_PORT / ERR_BLOCKED_BY_CLIENT 等）
+        // 既不走 onReceivedError 也不走 onPageFinished，只能靠超时判断。
+        loadWatchdog?.let { uiHandler.removeCallbacks(it) }
+        val wd = Runnable {
+            android.util.Log.i("DSHX", "watchdog fired, isLoaded=$isLoaded")
+            if (!isLoaded) showError()
+        }
+        loadWatchdog = wd
+        uiHandler.postDelayed(wd, LOAD_TIMEOUT_MS)
         runCatching { webView.loadUrl(url) }
             .onFailure { showFatal("加载地址失败: $url", it) }
     }
@@ -320,6 +367,7 @@ class MainActivity : Activity() {
 
 
     private fun showError() {
+        android.util.Log.i("DSHX", "showError called")
         webView.visibility = View.GONE
         errorView.visibility = View.VISIBLE
     }

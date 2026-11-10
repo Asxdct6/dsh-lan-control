@@ -10,7 +10,7 @@
     <string name="conn_cancel">取消</string>
     <string name="conn_bad_url">地址格式不对，需要以 http:// 或 https:// 开头</string>
     <string name="load_failed">无法连接到 DSH</string>
-    <string name="load_failed_hint">请确认电脑上的 DSH 已启动、手机与电脑在同一 Wi-Fi 下，然后点此重试</string>
+    <string name="load_failed_hint">请依次确认：\n1. 手机 Tailscale 已连接（最常见原因）\n2. 电脑上的 DSH 客户端在运行\n3. 客户端是从开始菜单启动的（带调试参数）</string>
     <string name="retry">重试</string>
     <string name="edit_url">改地址</string>
     <!-- 长按桌面图标的快捷入口 -->
