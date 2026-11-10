@@ -14,8 +14,8 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$adb = 'C:\Android\sdk\platform-tools\adb.exe'
-if (-not (Test-Path $adb)) { throw "找不到 adb: $adb" }
+$adb = (Get-Command adb -ErrorAction SilentlyContinue).Source
+if (-not $adb) { throw "找不到 adb，请把 platform-tools 加进 PATH" }
 
 function Get-Serial {
     $lines = & $adb devices 2>&1
