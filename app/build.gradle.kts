@@ -1,4 +1,4 @@
-﻿plugins {
+plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
 }
@@ -11,8 +11,8 @@ android {
         applicationId = "com.dsh.lancontrol"
         minSdk = 24
         targetSdk = 34
-        versionCode = 11
-        versionName = "2.1.0"
+        versionCode = 12
+        versionName = "2.2.0"
 
         // Placeholder DSH address baked into the APK. Replace it at build time with:
         //   .\build_debug.ps1 -DshUrl "http://<your-pc-ip>:8787/?token=xxxx"

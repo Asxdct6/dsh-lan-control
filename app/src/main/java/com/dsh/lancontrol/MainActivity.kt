@@ -90,7 +90,6 @@ class MainActivity : Activity() {
         root.addView(webView)
 
         configureWebView()
-        root.addView(buildSettingsButton())
         errorView = buildErrorView()
         root.addView(errorView)
         errorView.visibility = View.GONE
@@ -300,20 +299,6 @@ class MainActivity : Activity() {
         return box
     }
 
-    /** 页头下方的半透明「设置」，避开 DSH 右上角自己的图标 */
-    private fun buildSettingsButton(): View = TextView(this).apply {
-        text = "设置"
-        textSize = 10f
-        setTextColor(Color.parseColor("#C8D0DC"))
-        gravity = Gravity.CENTER
-        alpha = 0.40f
-        setBackgroundColor(Color.parseColor("#33000000"))
-        setOnClickListener { showUrlDialog() }
-        layoutParams = FrameLayout.LayoutParams(dp(40), dp(22), Gravity.TOP or Gravity.END).apply {
-            topMargin = dp(64)
-            rightMargin = dp(8)
-        }
-    }
 
     private fun showError() {
         webView.visibility = View.GONE
