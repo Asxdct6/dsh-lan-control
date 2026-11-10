@@ -16,6 +16,10 @@
         android:hardwareAccelerated="true"
         android:theme="@style/Theme.CyberSister">
 
+        <meta-data
+            android:name="android.app.shortcuts"
+            android:resource="@xml/shortcuts" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

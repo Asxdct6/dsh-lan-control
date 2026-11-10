@@ -46,6 +46,7 @@ class MainActivity : Activity() {
         private const val KEY_URL = "dsh_url"
         private const val KEY_LAST_GOOD = "dsh_last_good"
         private const val REQ_FILE = 1001
+        private const val EXTRA_OPEN_SETTINGS = "open_settings"
 
         private const val BG = "#0B1220"
         private const val FG = "#FFFFFF"
@@ -69,11 +70,29 @@ class MainActivity : Activity() {
         try {
             buildUi()
             showPreviousCrashIfAny()
+            if (wantsSettings(intent)) {
+                showUrlDialog()
+            }
         } catch (t: Throwable) {
             showFatal("界面初始化失败", t)
         }
     }
 
+    /** 长按桌面图标 → 「连接设置」会走这里（App 已在前台时） */
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        if (wantsSettings(intent)) {
+            showUrlDialog()
+        }
+    }
+
+    /** 快捷方式与 am start -e 传的都是字符串 extra，所以两种类型都要认 */
+    private fun wantsSettings(i: Intent?): Boolean {
+        if (i == null) return false
+        if (i.getBooleanExtra(EXTRA_OPEN_SETTINGS, false)) return true
+        return i.getStringExtra(EXTRA_OPEN_SETTINGS) == "true"
+    }
     // ------------------------------------------------------------------- 启动
 
     private fun buildUi() {

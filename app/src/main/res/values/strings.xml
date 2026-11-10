@@ -13,4 +13,7 @@
     <string name="load_failed_hint">请确认电脑上的 DSH 已启动、手机与电脑在同一 Wi-Fi 下，然后点此重试</string>
     <string name="retry">重试</string>
     <string name="edit_url">改地址</string>
+    <!-- 长按桌面图标的快捷入口 -->
+    <string name="shortcut_settings_short">连接设置</string>
+    <string name="shortcut_settings_long">修改 DSH 连接地址</string>
 </resources>

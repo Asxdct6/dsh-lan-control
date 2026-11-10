@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="conn_settings"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_settings_short"
+        android:shortcutLongLabel="@string/shortcut_settings_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.dsh.lancontrol"
+            android:targetClass="com.dsh.lancontrol.MainActivity">
+            <extra
+                android:name="open_settings"
+                android:value="true" />
+        </intent>
+    </shortcut>
+</shortcuts>
