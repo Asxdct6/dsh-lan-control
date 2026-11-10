@@ -1,59 +1,67 @@
-# 编译「赛博姐姐」debug APK
+# Build a debug APK for 局域网控制 DSH
 #
-# 用法：在 dsha-mobile 目录下执行
-#   .\build_debug.ps1
-#   .\build_debug.ps1 -DshUrl http://192.168.1.4:8787/    # 指定内置连接地址
+# Usage (from this directory):
+#   .\build_debug.ps1                                          # uses the default URL baked in gradle
+#   .\build_debug.ps1 -DshUrl "http://192.168.1.100:8787/?token=xxxx"
 #
-# 依赖：JDK 17、Android SDK (platform-34 / build-tools 34.0.0)、Gradle
+# Requires: JDK 17 (JAVA_HOME or on PATH), Android SDK (ANDROID_HOME or ANDROID_SDK_ROOT),
+#           platform-34 + build-tools 34.0.0 installed via sdkmanager.
 
 param(
     [string]$DshUrl = ""
 )
 
 $ErrorActionPreference = 'Stop'
-$root = Split-Path -Parent $PSScriptRoot
+$root = $PSScriptRoot
 Set-Location $root
 
-# ---- 工具链定位（优先环境变量，其次默认安装位置）----
+# ---- locate JDK ----
 if (-not $env:JAVA_HOME -or -not (Test-Path "$env:JAVA_HOME\bin\java.exe")) {
-    $candidates = Get-ChildItem 'C:\Program Files\Eclipse Adoptium' -Directory -ErrorAction SilentlyContinue |
-                  Sort-Object Name -Descending
-    if ($candidates) { $env:JAVA_HOME = $candidates[0].FullName }
+    $java = (Get-Command java -ErrorAction SilentlyContinue).Source
+    if ($java) {
+        $env:JAVA_HOME = Split-Path (Split-Path $java -Parent) -Parent
+    }
 }
-if (-not $env:JAVA_HOME) { throw "找不到 JDK 17，请设置 JAVA_HOME" }
+if (-not $env:JAVA_HOME -or -not (Test-Path "$env:JAVA_HOME\bin\java.exe")) {
+    throw "JDK 17 not found. Install one and set JAVA_HOME (e.g. winget install EclipseAdoptium.Temurin.17.JDK)"
+}
 
+# ---- locate Android SDK ----
 if (-not $env:ANDROID_HOME -or -not (Test-Path $env:ANDROID_HOME)) {
-    $env:ANDROID_HOME = 'C:\Android\sdk'
+    $env:ANDROID_HOME = $env:ANDROID_SDK_ROOT
 }
-if (-not (Test-Path $env:ANDROID_HOME)) { throw "找不到 Android SDK，请设置 ANDROID_HOME" }
+if (-not $env:ANDROID_HOME -or -not (Test-Path $env:ANDROID_HOME)) {
+    $guess = Join-Path $env:LOCALAPPDATA 'Android\Sdk'
+    if (Test-Path $guess) { $env:ANDROID_HOME = $guess }
+}
+if (-not $env:ANDROID_HOME -or -not (Test-Path $env:ANDROID_HOME)) {
+    throw "Android SDK not found. Set ANDROID_HOME to your SDK path."
+}
 $env:ANDROID_SDK_ROOT = $env:ANDROID_HOME
 $env:PATH = "$env:JAVA_HOME\bin;$env:ANDROID_HOME\platform-tools;$env:PATH"
 
 Write-Host "JAVA_HOME    = $env:JAVA_HOME" -ForegroundColor DarkGray
 Write-Host "ANDROID_HOME = $env:ANDROID_HOME" -ForegroundColor DarkGray
 
-# sdk.dir
+# local.properties (git-ignored)
 "sdk.dir=$($env:ANDROID_HOME -replace '\\','\\')" |
     Set-Content -Path (Join-Path $root 'local.properties') -Encoding ASCII
 
-# ---- 选择 gradle ----
+# ---- run gradle via wrapper ----
 $gradle = Join-Path $root 'gradlew.bat'
-if (-not (Test-Path $gradle)) {
-    $fallback = 'C:\Android\tmp\g\gradle-8.7\bin\gradle.bat'
-    if (Test-Path $fallback) { $gradle = $fallback } else { $gradle = 'gradle' }
-}
+if (-not (Test-Path $gradle)) { $gradle = 'gradle' }
 
 $gradleArgs = @('assembleDebug', '--no-daemon', '--console=plain')
 if ($DshUrl) { $gradleArgs += "-Pdsh.url=$DshUrl" }
 
 Write-Host "==> $gradle $($gradleArgs -join ' ')" -ForegroundColor Cyan
 & $gradle @gradleArgs
-if ($LASTEXITCODE -ne 0) { throw "编译失败，退出码 $LASTEXITCODE" }
+if ($LASTEXITCODE -ne 0) { throw "Build failed with exit code $LASTEXITCODE" }
 
-$apk = Get-ChildItem (Join-Path $root 'app\build\outputs\apk\debug') -Filter '*.apk' |
+$apk = Get-ChildItem (Join-Path $root 'app\build\outputs\apk\debug') -Filter '*.apk' -ErrorAction SilentlyContinue |
        Sort-Object LastWriteTime -Descending | Select-Object -First 1
-if (-not $apk) { throw "没找到 APK 产物" }
+if (-not $apk) { throw "No APK produced" }
 
 Write-Host ""
-Write-Host "APK: $($apk.FullName)" -ForegroundColor Green
-Write-Host "大小: $([math]::Round($apk.Length/1MB,2)) MB" -ForegroundColor Green
+Write-Host "APK : $($apk.FullName)" -ForegroundColor Green
+Write-Host "Size: $([math]::Round($apk.Length/1MB,2)) MB" -ForegroundColor Green

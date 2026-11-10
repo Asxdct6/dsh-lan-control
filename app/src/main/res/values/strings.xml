@@ -3,11 +3,9 @@
     <!-- App 显示名称 -->
     <string name="app_name">局域网控制DSH</string>
 
-    <!-- 首次启动的连接地址；之后可在应用内「连接设置」修改 -->
-    <string name="default_dsh_url" translatable="false">http://192.168.1.4:8787/</string>
-
+    <!-- 连接设置 -->
     <string name="conn_settings">连接设置</string>
-    <string name="conn_hint">请输入 DSH 地址，例如 http://192.168.1.4:8787/</string>
+    <string name="conn_hint">请输入 DSH 地址，例如 http://192.168.1.100:8787/</string>
     <string name="conn_save">保存并连接</string>
     <string name="conn_cancel">取消</string>
     <string name="conn_bad_url">地址格式不对，需要以 http:// 或 https:// 开头</string>

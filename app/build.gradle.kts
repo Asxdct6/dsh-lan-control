@@ -14,9 +14,11 @@ android {
         versionCode = 10
         versionName = "2.0.0"
 
-        // Default DSH address baked into the APK; override with -Pdsh.url=...
+        // Placeholder DSH address baked into the APK. Replace it at build time with:
+        //   .\build_debug.ps1 -DshUrl "http://<your-pc-ip>:8787/?token=xxxx"
+        // If it is still the placeholder on first launch, the app asks for the real address.
         val dshUrl = (project.findProperty("dsh.url") as String?)
-            ?: "http://192.168.1.4:8787/"
+            ?: "http://192.168.1.100:8787/"
         buildConfigField("String", "DSH_URL", "\"$dshUrl\"")
     }
 

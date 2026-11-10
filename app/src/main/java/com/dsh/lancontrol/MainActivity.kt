@@ -50,6 +50,9 @@ class MainActivity : Activity() {
         private const val BG = "#0B1220"
         private const val FG = "#FFFFFF"
         private const val MUTED = "#9AA4B2"
+
+        /** 构建时的占位地址；首次启动检测到它就弹设置框 */
+        private const val PLACEHOLDER_HOST = "192.168.1.100"
     }
 
     private lateinit var root: FrameLayout
@@ -96,6 +99,12 @@ class MainActivity : Activity() {
 
         currentUrl = prefs.getString(KEY_URL, null) ?: BuildConfig.DSH_URL
         load(currentUrl)
+        // 首次启动且仍是占位地址时，直接让用户填真实地址
+        if (prefs.getString(KEY_URL, null) == null &&
+            BuildConfig.DSH_URL.contains(PLACEHOLDER_HOST)
+        ) {
+            root.post { showUrlDialog() }
+        }
     }
 
     /** 上次崩溃（如果有）在启动后弹一次，方便截图反馈 */
