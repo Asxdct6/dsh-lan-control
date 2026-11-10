@@ -109,6 +109,30 @@ start-dsh-lan.ps1      在局域网 IP 上启动 DSH Web
 - **`adjustResize`**：键盘弹出时页面整体上移，输入框不被遮挡
 - **不使用任何第三方依赖**：只用 Android 平台 API，构建快、体积小（APK ≈ 0.95 MB）
 - **放行明文 HTTP**：局域网是 `http://`，通过 `network_security_config` 显式声明
+- **同主机不同端口不算外部链接**：否则跳板地址的 302 会被甩给系统浏览器
+
+## 远程访问（可选）
+
+想在外面也能连，又不想把端口开到公网，可以用 Tailscale 做一条私有通道：
+
+```powershell
+# 1. 电脑装 Tailscale 并登录，拿到 100.x.y.z 和 MagicDNS 名
+# 2. DSH 只绑回环
+dsh web --host 127.0.0.1 --port 8787 --no-open `
+    --trusted-host <机器>.<tailnet>.ts.net `
+    --public-url https://<机器>.<tailnet>.ts.net:8443/
+
+# 3. 用 tailscale serve 暴露给 tailnet（后台管理后台开启 HTTPS Certificates）
+tailscale serve --bg --https=8443 http://127.0.0.1:8787
+```
+
+这样 DSH 不会出现在局域网里，只有 tailnet 内设备能访问，且带真实证书。
+
+**token 轮换怎么办？** DSH 每次启动都会换 token，地址一改 App 就失联。
+可以加一个几十行的本地跳板：监听 `127.0.0.1:8081`，每次请求都 `302` 到
+`https://<host>:8443/?token=<当前 token>`，token 由守护进程从 DSH 输出里实时抓取并写文件。
+再用 `tailscale serve --bg --https=443 http://127.0.0.1:8081` 暴露跳板，
+App 里填 `https://<机器>.<tailnet>.ts.net/` 即可——**地址永久固定**。
 
 ## 已知限制
 
