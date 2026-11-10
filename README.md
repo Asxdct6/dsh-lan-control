@@ -1,5 +1,7 @@
 # 局域网控制 DSH
 
+[![Build APK](https://github.com/Asxdct6/dsh-lan-control/actions/workflows/build-apk.yml/badge.svg)](https://github.com/Asxdct6/dsh-lan-control/actions/workflows/build-apk.yml)
+
 在手机上通过局域网控制电脑上运行的 [DeepSeek Harness](https://github.com/deepseek-ai/DeepSeek-Harness)（DSH）。
 
 一个极薄的 Android WebView 壳：把 DSH 的 Web UI 装进原生应用，配上移动端抽屉导航、自适应图标和崩溃自诊断。
