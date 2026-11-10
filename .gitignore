@@ -1,0 +1,23 @@
+# ---- Android / Gradle ----
+.gradle/
+build/
+app/build/
+*.apk
+*.aab
+*.jks
+*.keystore
+local.properties
+
+# ---- IDE ----
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# ---- 构建产物与截图 ----
+dist/
+tools/icon_preview.png
+
+# ---- 本机敏感信息（token、局域网地址等） ----
+*.local.properties
+secrets.properties
